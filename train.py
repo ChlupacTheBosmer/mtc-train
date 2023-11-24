@@ -162,6 +162,11 @@ def main(args):
     if args.datasets_dir is None:
 
         datasets_dir = os.path.join(current_directory, 'datasets')
+
+    else:
+
+        datasets_dir = args.datasets_dir
+
     print(f"Datasets directory set to: {datasets_dir}")
 
     # Get runs directory
@@ -206,7 +211,7 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Your script description.')
+    parser = argparse.ArgumentParser(description='This script will train a YOLOv8 model.')
 
     # Example arguments. Modify them according to your needs.
     parser.add_argument('--dataset', type=str, default=None, help='Dataset folder name')
