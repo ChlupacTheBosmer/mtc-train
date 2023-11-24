@@ -62,7 +62,7 @@ def assign_batch_size(batch_size_per_gpu: int = 224):
     num_cuda_devices = torch.cuda.device_count()
 
     # Calculate batch size
-    batch_size = batch_size_per_gpu * num_cuda_devices
+    batch_size = batch_size_per_gpu * max(1, num_cuda_devices)
 
     print(f"Batch size per GPU: {batch_size_per_gpu}, Using batch size: {batch_size}")
 
