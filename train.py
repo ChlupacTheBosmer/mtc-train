@@ -137,14 +137,14 @@ def main(args):
     # Review args
     print(f"Received arguments: {args}")
 
-    # Initiate task
-    task = Task.init(project_name=args.project_name, task_name=args.dataset)
-
     # Set some CUDA environment variables
     initialize_cuda_settings()
 
     # Initialize clearML auth variables
     initialize_clearml()
+
+    # Initiate task
+    task = Task.init(project_name=args.project_name, task_name=args.dataset)
 
     # Get working directory if not specified
     if args.workdir is None:
