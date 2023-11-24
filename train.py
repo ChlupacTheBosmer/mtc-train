@@ -1,3 +1,4 @@
+import torch.cuda
 import os
 import argparse
 from ultralytics import YOLO
@@ -29,7 +30,7 @@ def initialize_yolo_settings(datasets_dir: str, runs_dir: str):
 
 def assign_device():
     # Detect CUDA devices
-    num_cuda_devices = 1
+    num_cuda_devices = torch.cuda.device_count()
 
     # Assign value to the device selection variable
     if num_cuda_devices == 1:
@@ -39,13 +40,13 @@ def assign_device():
     else:
         device = "cpu"
 
-    print(f"CUDA available: , Using CUDA device(s): {device}")
+    print(f"CUDA available: {torch.cuda.is_available()}, Using CUDA device(s): {device}")
 
     return device
 
 def assign_workers():
     # Detect CUDA devices
-    num_cuda_devices = 1
+    num_cuda_devices = torch.cuda.device_count()
 
     # Assign value to the number of workers based on the number of cores used per GPU
     num_cpu_cores = os.cpu_count()
@@ -58,7 +59,7 @@ def assign_workers():
 
 def assign_batch_size(batch_size_per_gpu: int = 224):
     # Detect CUDA devices
-    num_cuda_devices = 1
+    num_cuda_devices = torch.cuda.device_count()
 
     # Calculate batch size
     batch_size = batch_size_per_gpu * num_cuda_devices
