@@ -38,7 +38,7 @@ def assign_device():
     elif num_cuda_devices > 1:
         device = [int(i) for i in range(num_cuda_devices)]
     else:
-        device = None
+        device = "cpu"
 
     print(f"CUDA available: {torch.cuda.is_available()}, Using CUDA device(s): {device}")
 
@@ -51,7 +51,7 @@ def assign_workers():
     # Assign value to the number of workers based on the number of cores used per GPU
     num_cpu_cores = os.cpu_count()
 
-    num_workers = num_cpu_cores // num_cuda_devices
+    num_workers = num_cpu_cores // max(1, num_cuda_devices)
 
     print(f"Number of CPU cores: {os.cpu_count()}, Using workers: {num_workers}")
 
