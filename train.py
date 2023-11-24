@@ -200,8 +200,8 @@ def main(args):
     model = YOLO(args.model)
 
     # Put together the path to the dataset data file
-    dataset_data = os.path.normpath(os.path.join(datasets_dir, args.dataset, f'{args.dataset}.yaml')) if args.path_update is not None else os.path.normpath(os.path.join(datasets_dir, args.dataset, f'{args.dataset}_updated.yaml'))
-
+    dataset_data = os.path.normpath(os.path.join(datasets_dir, args.dataset, f'{args.dataset}.yaml')) if args.path_update is None else os.path.normpath(os.path.join(datasets_dir, args.dataset, f'{args.dataset}_updated.yaml'))
+    print(dataset_data)
     # Train the model
     try:
         results = model.train(data=dataset_data, epochs=100, batch=batch_size, imgsz=640, workers=0, device=device,
