@@ -1,7 +1,0 @@
-ultralytics
-clearml
-nvidia-pyindex
-torch==2.1.0+cu121
-torchvision==0.16.0+cu121
-cuda
-nvidia-cuda-runtime-cu12
