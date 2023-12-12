@@ -189,7 +189,10 @@ def main(args):
     device = assign_device()
 
     # Get number fo workers
-    num_workers = assign_workers()
+    if args.workers is None:
+        num_workers = assign_workers()
+    else:
+        num_workers = 1
 
     # Get batch size
     if args.batch_size is None:
@@ -234,7 +237,8 @@ def main(args):
                 model = YOLO(args.weights)
 
                 results = model.train(resume=True,
-                                      batch=batch_size
+                                      batch=batch_size,
+                                      workers=num_workers
                                       )
 
                 task.close()
@@ -258,12 +262,14 @@ if __name__ == "__main__":
     parser.add_argument('--model', type=str, default="yolov8n.pt", help='Name or path to a pretrained model')
     parser.add_argument('--epochs', type=int, default=100, help='Number of epochs to train the model for')
     parser.add_argument('--batch_size', type=int, default=None, help='Manual override of batch_size, -1 for AutoBatch')
+    parser.add_argument('--workers', type=int, default=None, help='Manual override of number of workers')
     parser.add_argument('--lr0', type=float, default=0.001, help='Initial learning rate')
     parser.add_argument('--lrf', type=float, default=0.01, help='Final learning rate (lr0 * lrf)')
     parser.add_argument('--cos_lr', type=bool, default=True, help='Use cos scheduler for learning rate')
     parser.add_argument('--optimizer', type=str, default='auto', help='optimizer: SGD, Adam, Adamax, AdamW, NAdam, RAdam, RMSProp, auto')
     parser.add_argument('--resume', type=bool, default=False, help='Whether to resume interrupted training')
     parser.add_argument('--weights', type=str, default=None, help='Path to partial weights (last.pt / best.pt)')
+
 
 
 
