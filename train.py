@@ -204,8 +204,19 @@ def main(args):
     print(dataset_data)
     # Train the model
     try:
-        results = model.train(data=dataset_data, epochs=100, batch=batch_size, imgsz=640, workers=num_workers, device=device,
-                              verbose=True, project=args.project_name, name=args.dataset)
+        results = model.train(data=dataset_data,
+                              epochs=300,
+                              batch=batch_size,
+                              imgsz=640,
+                              workers=num_workers,
+                              device=device,
+                              verbose=True,
+                              project=args.project_name,
+                              name=args.dataset,
+                              lr0=0.0001,
+                              lrf=0.001,
+                              cos_lr=True
+                              )
     except:
         raise
 
