@@ -176,31 +176,30 @@ def main(args):
     # Update multiple settings
     initialize_yolo_settings(datasets_dir, runs_dir)
 
+    # Get list of datasets
+    if args.dataset is None:
+        return
+
+    # Paths will be updated to reflect the binding of directories or any necessary modifications
+    if args.path_update is not None:
+        # Update paths
+        update_dataset_paths(args.dataset, datasets_dir)
+
+    # Get devices for training
+    device = assign_device()
+
+    # Get number fo workers
+    num_workers = assign_workers()
+
+    # Get batch size
+    if args.batch_size is None:
+        batch_size = assign_batch_size()
+        if batch_size == 0:
+            batch_size = 64
+    else:
+        batch_size = args.batch_size
+
     if not args.resume:
-        # Get list of datasets
-        if args.dataset is None:
-
-            return
-
-        # Paths will be updated to reflect the binding of directories or any necessary modifications
-        if args.path_update is not None:
-
-            # Update paths
-            update_dataset_paths(args.dataset, datasets_dir)
-
-        # Get devices for training
-        device = assign_device()
-
-        # Get number fo workers
-        num_workers = assign_workers()
-
-        # Get batch size
-        if args.batch_size is None:
-            batch_size = assign_batch_size()
-            if batch_size == 0:
-                batch_size = 64
-        else:
-            batch_size = args.batch_size
 
         # Load a pretrained model
         model = YOLO(args.model)
@@ -234,7 +233,9 @@ def main(args):
                 # load model from partial weights
                 model = YOLO(args.weights)
 
-                results = model.train(resume=True)
+                results = model.train(resume=True,
+                                      batch=batch_size
+                                      )
 
                 task.close()
             else:
