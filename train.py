@@ -176,55 +176,73 @@ def main(args):
     # Update multiple settings
     initialize_yolo_settings(datasets_dir, runs_dir)
 
-    # Get list of datasets
-    if args.dataset is None:
+    if not args.resume:
+        # Get list of datasets
+        if args.dataset is None:
 
-        return
+            return
 
-    # Paths will be updated to reflect the binding of directories or any necessary modifications
-    if args.path_update is not None:
+        # Paths will be updated to reflect the binding of directories or any necessary modifications
+        if args.path_update is not None:
 
-        # Update paths
-        update_dataset_paths(args.dataset, datasets_dir)
+            # Update paths
+            update_dataset_paths(args.dataset, datasets_dir)
 
-    # Get devices for training
-    device = assign_device()
+        # Get devices for training
+        device = assign_device()
 
-    # Get number fo workers
-    num_workers = assign_workers()
+        # Get number fo workers
+        num_workers = assign_workers()
 
-    # Get batch size
-    if args.batch_size is None:
-        batch_size = assign_batch_size()
-        if batch_size == 0:
-            batch_size = 64
+        # Get batch size
+        if args.batch_size is None:
+            batch_size = assign_batch_size()
+            if batch_size == 0:
+                batch_size = 64
+        else:
+            batch_size = args.batch_size
+
+        # Load a pretrained model
+        model = YOLO(args.model)
+
+        # Put together the path to the dataset data file
+        dataset_data = os.path.normpath(os.path.join(datasets_dir, args.dataset, f'{args.dataset}.yaml')) if args.path_update is None else os.path.normpath(os.path.join(datasets_dir, args.dataset, f'{args.dataset}_updated.yaml'))
+        print(dataset_data)
+        # Train the model
+        try:
+            results = model.train(data=dataset_data,
+                                  epochs=args.epochs,
+                                  batch=batch_size,
+                                  imgsz=640,
+                                  workers=num_workers,
+                                  device=device,
+                                  verbose=True,
+                                  project=args.project_name,
+                                  name=args.dataset,
+                                  lr0=args.lr0,
+                                  lrf=args.lrf,
+                                  cos_lr=args.cos_lr,
+                                  optimizer=args.optimizer
+                                  )
+            task.close()
+        except:
+            raise
     else:
-        batch_size = args.batch_size
+        try:
+            if os.path.exists(args.weights):
 
-    # Load a pretrained model
-    model = YOLO(args.model)
+                # load model from partial weights
+                model = YOLO(args.weights)
 
-    # Put together the path to the dataset data file
-    dataset_data = os.path.normpath(os.path.join(datasets_dir, args.dataset, f'{args.dataset}.yaml')) if args.path_update is None else os.path.normpath(os.path.join(datasets_dir, args.dataset, f'{args.dataset}_updated.yaml'))
-    print(dataset_data)
-    # Train the model
-    try:
-        results = model.train(data=dataset_data,
-                              epochs=args.epochs,
-                              batch=batch_size,
-                              imgsz=640,
-                              workers=num_workers,
-                              device=device,
-                              verbose=True,
-                              project=args.project_name,
-                              name=args.dataset,
-                              lr0=args.lr0,
-                              lrf=args.lrf,
-                              cos_lr=args.cos_lr,
-                              optimizer=args.optimizer
-                              )
-    except:
-        raise
+                results = model.train(resume=True)
+
+                task.close()
+            else:
+                # Raise and return
+                raise FileNotFoundError(f'{args.weights} not found')
+        except:
+            raise
+
 
 
 if __name__ == "__main__":
@@ -242,7 +260,10 @@ if __name__ == "__main__":
     parser.add_argument('--lr0', type=float, default=0.001, help='Initial learning rate')
     parser.add_argument('--lrf', type=float, default=0.01, help='Final learning rate (lr0 * lrf)')
     parser.add_argument('--cos_lr', type=bool, default=True, help='Use cos scheduler for learning rate')
-    parser.add_argument('--optimizer', type=str, default='auto', help='optimizer, either: SGD, Adam, Adamax, AdamW, NAdam, RAdam, RMSProp, auto')
+    parser.add_argument('--optimizer', type=str, default='auto', help='optimizer: SGD, Adam, Adamax, AdamW, NAdam, RAdam, RMSProp, auto')
+    parser.add_argument('--resume', type=bool, default=False, help='Whether to resume interrupted training')
+    parser.add_argument('--weights', type=str, default=None, help='Path to partial weights (last.pt / best.pt)')
+
 
 
     # parse arguments
