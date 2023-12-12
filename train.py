@@ -144,7 +144,8 @@ def main(args):
     initialize_clearml()
 
     # Initiate task
-    task = Task.init(project_name=args.project_name, task_name=args.dataset)
+    name = args.dataset if args.name is None else args.name
+    task = Task.init(project_name=args.project_name, task_name=name)
 
     # Get working directory if not specified
     if args.workdir is None:
@@ -255,6 +256,7 @@ if __name__ == "__main__":
 
     # Example arguments. Modify them according to your needs.
     parser.add_argument('--dataset', type=str, default=None, help='Dataset folder name')
+    parser.add_argument('--name', type=str, default=None, help='Task name')
     parser.add_argument('--datasets_dir', type=str, default=None, help='Path to the dataset folder')
     parser.add_argument('--workdir', type=str, default=None, help='Path to the working directory (homedir)')
     parser.add_argument('--path_update', type=str, default=None, help='Path to dataset images and/or labels will be updated by replacing "storage" with a preset path (to reflect binding)')
