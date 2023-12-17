@@ -10,6 +10,14 @@ from clearml import Task
 def get_gpu_memory_cuda():
     """
     Returns the total memory of the current GPU in GB.
+
+    Requires a machine with a CUDA-capable GPU. Initializes the GPU and queries its total memory.
+
+    Returns:
+        float: Total GPU memory in GB.
+
+    Raises:
+        RuntimeError: If no CUDA-capable GPU is found.
     """
     if torch.cuda.is_available():
         torch.cuda.init()
@@ -21,20 +29,41 @@ def get_gpu_memory_cuda():
 
 def calculate_batch_size(memory_gb, divisor=0.2):
     """
-    Calculates the batch size based on the GPU memory.
+    Calculates the batch size for training based on the GPU memory.
+
     Args:
     - memory_gb (float): Total GPU memory in GB.
     - divisor (float): The divisor for calculating batch size. Default is 0.2.
+
     Returns:
     - int: Calculated batch size.
     """
     return int(memory_gb / divisor)
 
 def get_node_name(hostname):
+    """
+        Extracts the node name from the hostname.
+
+        Args:
+            hostname (str): The hostname to extract the node name from.
+
+        Returns:
+            str: Node name extracted from the hostname.
+    """
     # Extracts the node name from the hostname (e.g., "fau2" from "fau2.natur.cuni.cz")
     return hostname.split('.')[0]
 
 def get_gpu_memory(node_name, gpu_memory_dict):
+    """
+        Retrieves the GPU memory size for the given node name and converts it to GB.
+
+        Args:
+            node_name (str): Name of the node whose memory size is to be retrieved.
+            gpu_memory_dict (dict): Dictionary mapping node names to their GPU memory in MB.
+
+        Returns:
+            float: GPU memory size in GB for the given node name.
+    """
     # Retrieves the GPU memory size for the given node name and converts it to GB
     memory_mb = gpu_memory_dict.get(node_name)
     if memory_mb is None:
@@ -42,11 +71,22 @@ def get_gpu_memory(node_name, gpu_memory_dict):
     return memory_mb / 1024
 
 def initialize_cuda_settings():
+    """
+        Configures CUDA environment variables for optimal performance during training.
+
+        Sets specific environment variables related to CUDA operations.
+    """
     # Specify some CUDA setttings
     os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
     os.environ['TORCH_USE_CUDA_DSA'] = "1"
 
 def initialize_clearml():
+    """
+        Initializes ClearML environment variables for task monitoring and management.
+
+        Sets up necessary environment variables for ClearML integration, enabling task monitoring
+        and management in a remote server setup.
+    """
     # Init ClearML
     os.environ['CLEARML_WEB_HOST'] = 'https://app.clear.ml'
     os.environ['CLEARML_API_HOST'] = 'https://api.clear.ml'
@@ -55,7 +95,15 @@ def initialize_clearml():
     os.environ['CLEARML_API_SECRET_KEY'] = 'TCOeMkjTwyXGnWiFEgYs9nvWeiHHtGiJ2iwk8VhJo7M1CpiYTe'
 
 def initialize_yolo_settings(datasets_dir: str, runs_dir: str):
+    """
+        Configures settings for YOLO datasets and run results directories.
 
+        Creates and sets up the specified directories for storing datasets and results of YOLO model runs.
+
+        Args:
+            datasets_dir (str): Directory for storing datasets.
+            runs_dir (str): Directory for storing run results.
+    """
     # Create the directories
     os.makedirs(datasets_dir, exist_ok=True)
     os.makedirs(runs_dir, exist_ok=True)
@@ -64,6 +112,15 @@ def initialize_yolo_settings(datasets_dir: str, runs_dir: str):
     settings.update({'datasets_dir': datasets_dir, 'runs_dir': runs_dir})
 
 def assign_device():
+    """
+        Detects available CUDA devices and assigns one or more for training.
+
+        Based on the number of available CUDA devices, this function assigns either a single GPU,
+        multiple GPUs, or falls back to CPU for training.
+
+        Returns:
+            str or list: Indicating the selected CUDA device(s) or 'cpu' if no CUDA device is available.
+    """
     # Detect CUDA devices
     num_cuda_devices = torch.cuda.device_count()
 
@@ -80,6 +137,15 @@ def assign_device():
     return device
 
 def assign_workers():
+    """
+        Calculates the number of workers to use for data loading based on available CPU cores and CUDA devices.
+
+        Determines the optimal number of workers for data loading by dividing the total number of CPU cores
+        by the number of CUDA devices.
+
+        Returns:
+            int: Number of workers for data loading.
+    """
     # Detect CUDA devices
     num_cuda_devices = torch.cuda.device_count()
 
@@ -93,7 +159,18 @@ def assign_workers():
     return num_workers
 
 def assign_batch_size(method: int = 0, hostname = None):
+    """
+        Determines the batch size for training based on the available GPU memory.
 
+        Depending on the method chosen, it either dynamically detects GPU memory or retrieves it from a pre-defined dictionary.
+
+        Args:
+            method (int): Method for detecting GPU memory. 0 for dynamic detection, 1 for dictionary-based.
+            hostname (str): Hostname of the machine, used in method 1 for memory retrieval.
+
+        Returns:
+            int: Calculated batch size for training.
+    """
     # Define node dictionary
     gpu_memory_by_node = {
         # adan cluster nodes
@@ -157,10 +234,31 @@ def assign_batch_size(method: int = 0, hostname = None):
     return batch_size
 
 def get_folder_names(directory):
+    """
+        Retrieves a list of folder names within a specified directory.
+
+        This function lists all directories within the specified directory, excluding 'Model training frames'.
+
+        Args:
+            directory (str): Path to the directory from which folder names will be listed.
+
+        Returns:
+            List[str]: A list of folder names found in the specified directory.
+    """
     # Get a list of all folder names in the given directory to get dataset folders. Manually excluding the source data.
     return [name for name in os.listdir(directory) if os.path.isdir(os.path.join(directory, name)) and name != 'Model training frames']
 
 def update_dataset_paths(folder: str, datasets_dir: str):
+    """
+        Updates file paths in dataset YAML and TXT files to reflect directory changes.
+
+        Modifies the dataset paths in the YAML and TXT files of a specified dataset folder,
+        to reflect any changes in directory structure or locations.
+
+        Args:
+            folder (str): The dataset folder whose paths need updating.
+            datasets_dir (str): Path to the datasets directory.
+    """
 
     def update_txt_file(txt_file_path: str):
 
@@ -221,6 +319,16 @@ def update_dataset_paths(folder: str, datasets_dir: str):
 
 
 def main(args):
+    """
+        Main function to run YOLOv8 training with specified configurations.
+
+        This function sets up the training environment, initializes CUDA and ClearML settings, and
+        trains a YOLOv8 model based on the arguments provided. It supports dynamic batch size calculation,
+        multiple GPUs, and dataset path adjustments.
+
+        Args:
+            args: Parsed command-line arguments.
+    """
 
     # Review args
     print(f"Received arguments: {args}")
@@ -343,6 +451,12 @@ def main(args):
 
 
 if __name__ == "__main__":
+
+
+    '''
+    This script will run a YOLO8 training and use the arguments passed to it. Ready for use in Metacentrum Batch script.
+    '''
+
     parser = argparse.ArgumentParser(description='This script will train a YOLOv8 model.')
 
     # Example arguments. Modify them according to your needs.
@@ -367,10 +481,9 @@ if __name__ == "__main__":
     parser.add_argument('--hostname', type=str, default=None, help='$HOSTNAME from the pbs job to extract the node name from')
     parser.add_argument('--single_cls', type=int, default=0, help='Whether to train as single classed model (0/1)')
 
-
-
     # parse arguments
     args = parser.parse_args()
 
     # Run the main logic with the arguments
     main(args)
+
