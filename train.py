@@ -293,6 +293,8 @@ def main(args):
 
     if args.resume == 0:
 
+        single_cls = True if args.single_cls == 1 else False
+
         # Load a pretrained model
         model = YOLO(args.model)
 
@@ -313,7 +315,8 @@ def main(args):
                                   lr0=args.lr0,
                                   lrf=args.lrf,
                                   cos_lr=args.cos_lr,
-                                  optimizer=args.optimizer
+                                  optimizer=args.optimizer,
+                                  single_cls=single_cls
                                   )
             task.close()
         except:
@@ -362,6 +365,7 @@ if __name__ == "__main__":
     parser.add_argument('--resume', type=int, default=0, help='Whether to resume interrupted training')
     parser.add_argument('--weights', type=str, default="", help='Path to partial weights (last.pt / best.pt)')
     parser.add_argument('--hostname', type=str, default=None, help='$HOSTNAME from the pbs job to extract the node name from')
+    parser.add_argument('--single_cls', type=int, default=0, help='Whether to train as single classed model (0/1)')
 
 
 
