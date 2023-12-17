@@ -291,7 +291,7 @@ def main(args):
     else:
         batch_size = args.batch_size
 
-    if not args.resume:
+    if args.resume == 0:
 
         # Load a pretrained model
         model = YOLO(args.model)
@@ -359,7 +359,7 @@ if __name__ == "__main__":
     parser.add_argument('--lrf', type=float, default=0.01, help='Final learning rate (lr0 * lrf)')
     parser.add_argument('--cos_lr', type=bool, default=True, help='Use cos scheduler for learning rate')
     parser.add_argument('--optimizer', type=str, default='auto', help='optimizer: SGD, Adam, Adamax, AdamW, NAdam, RAdam, RMSProp, auto')
-    parser.add_argument('--resume', type=bool, default=False, help='Whether to resume interrupted training')
+    parser.add_argument('--resume', type=int, default=0, help='Whether to resume interrupted training')
     parser.add_argument('--weights', type=str, default="", help='Path to partial weights (last.pt / best.pt)')
     parser.add_argument('--hostname', type=str, default=None, help='$HOSTNAME from the pbs job to extract the node name from')
 
