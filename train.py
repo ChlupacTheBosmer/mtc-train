@@ -370,7 +370,3 @@ if __name__ == "__main__":
 
     # Run the main logic with the arguments
     main(args)
-
-qsub -l walltime=4:0:0 -q gpu@meta-pbs.metacentrum.cz -l select=1:ncpus=10:ngpus=1:mem=128gb:scratch_local=1gb:gpu_cap=cuda75 -v name="flowers_ours" dataset="flowers_ours"  project_name="Flowers" epochs=100 workers=10 lr0=0.01 lrf=0.01 cos_lr=True /storage/brno2/home/chlupp/pycharm/mtc-icvt/metacentrum/train_args.sh
-
-qsub -l walltime=4:0:0 -q gpu@meta-pbs.metacentrum.cz -l select=1:ncpus=10:ngpus=1:mem=128gb:scratch_local=1gb:gpu_cap=cuda75 -N "flowers_ours" -v name="flowers_ours",dataset="flowers_ours",project_name="Flowers",epochs=100,workers=10,lr0=0.01,lrf=0.01,cos_lr=True /storage/brno2/home/chlupp/pycharm/mtc-icvt/metacentrum/train_args.sh
