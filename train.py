@@ -7,7 +7,7 @@ import torch
 import clearml
 from clearml import Task
 
-def get_gpu_memory():
+def get_gpu_memory_cuda():
     """
     Returns the total memory of the current GPU in GB.
     """
@@ -134,7 +134,7 @@ def assign_batch_size(method: int = 0, hostname = None):
     if method == 0:
 
         # Get GPU memory
-        gpu_memory_gb = get_gpu_memory()
+        gpu_memory_gb = get_gpu_memory_cuda()
 
     elif method == 1 and hostname is not None:
 
