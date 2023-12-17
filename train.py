@@ -311,7 +311,7 @@ def main(args):
                                   device=device,
                                   verbose=True,
                                   project=args.project_name,
-                                  name=args.dataset,
+                                  name=name,
                                   lr0=args.lr0,
                                   lrf=args.lrf,
                                   cos_lr=args.cos_lr,
