@@ -3,8 +3,43 @@ import os
 import argparse
 from ultralytics import YOLO
 from ultralytics import settings
+import torch
 import clearml
 from clearml import Task
+
+def get_gpu_memory():
+    """
+    Returns the total memory of the current GPU in GB.
+    """
+    if torch.cuda.is_available():
+        torch.cuda.init()
+        gpu_memory = torch.cuda.get_device_properties(0).total_memory
+        # Convert bytes to GB
+        return gpu_memory / (1024**3)
+    else:
+        raise RuntimeError("No GPU found. Make sure to run this on a machine with a GPU.")
+
+def calculate_batch_size(memory_gb, divisor=0.2):
+    """
+    Calculates the batch size based on the GPU memory.
+    Args:
+    - memory_gb (float): Total GPU memory in GB.
+    - divisor (float): The divisor for calculating batch size. Default is 0.2.
+    Returns:
+    - int: Calculated batch size.
+    """
+    return int(memory_gb / divisor)
+
+def get_node_name(hostname):
+    # Extracts the node name from the hostname (e.g., "fau2" from "fau2.natur.cuni.cz")
+    return hostname.split('.')[0]
+
+def get_gpu_memory(node_name, gpu_memory_dict):
+    # Retrieves the GPU memory size for the given node name and converts it to GB
+    memory_mb = gpu_memory_dict.get(node_name)
+    if memory_mb is None:
+        return "Unknown node"
+    return memory_mb / 1024
 
 def initialize_cuda_settings():
     # Specify some CUDA setttings
@@ -57,9 +92,62 @@ def assign_workers():
 
     return num_workers
 
-def assign_batch_size(batch_size_per_gpu: int = 224):
+def assign_batch_size(method: int = 0, hostname = None):
+
+    # Define node dictionary
+    gpu_memory_by_node = {
+        # adan cluster nodes
+        **{f"adan{i}": 15109 for i in range(1, 62)},
+        # black cluster nodes
+        "black1": 16280,
+        # galdor cluster nodes
+        **{f"galdor{i}": 45634 for i in range(1, 21)},
+        # glados cluster nodes
+        "glados1": 12066,
+        **{f"glados{i}": 7982 for i in range(2, 8)},
+        **{f"glados{i}": 11178 for i in range(11, 14)},
+        # luna cluster nodes
+        **{f"luna{i}": 45634 for i in range(201, 207)},
+        # fer cluster nodes
+        **{f"fer{i}": 16117 for i in range(1, 4)},
+        # zefron cluster nodes
+        "zefron6": 22731,
+        "zefron7": 8119,
+        "zefron8": 11441,
+        # zia cluster nodes
+        **{f"zia{i}": 40536 for i in range(1, 6)},
+        # fau cluster nodes
+        **{f"fau{i}": 16125 for i in range(1, 4)},
+        # cha cluster nodes
+        "cha": 11019,
+        # gita cluster nodes
+        **{f"gita{i}": 11019 for i in range(1, 8)},
+        # konos cluster nodes
+        **{f"konos{i}": 11178 for i in range(1, 9)},
+        # grimbold cluster node
+        "grimbold": 12198,
+    }
+
     # Detect CUDA devices
     num_cuda_devices = torch.cuda.device_count()
+
+    if method == 0:
+
+        # Get GPU memory
+        gpu_memory_gb = get_gpu_memory()
+
+    elif method == 1 and hostname is not None:
+
+        hostname = args.hostname
+        node_name = get_node_name(hostname)
+        gpu_memory_gb = get_gpu_memory(node_name, gpu_memory_by_node)
+
+    else:
+        print("Wrong detection method argument value")
+        return 0
+
+    # Calculate batch size
+    batch_size_per_gpu = calculate_batch_size(gpu_memory_gb)
 
     # Calculate batch size
     batch_size = batch_size_per_gpu * max(1, num_cuda_devices)
@@ -196,8 +284,8 @@ def main(args):
         num_workers = 1
 
     # Get batch size
-    if args.batch_size is None:
-        batch_size = assign_batch_size()
+    if args.batch_size == 0:
+        batch_size = assign_batch_size(args.autobatch_method, args.hostname)
         if batch_size == 0:
             batch_size = 64
     else:
@@ -263,7 +351,9 @@ if __name__ == "__main__":
     parser.add_argument('--project_name', type=str, default="YOLOv8 train", help='Project name')
     parser.add_argument('--model', type=str, default="yolov8n.pt", help='Name or path to a pretrained model')
     parser.add_argument('--epochs', type=int, default=100, help='Number of epochs to train the model for')
-    parser.add_argument('--batch_size', type=int, default=None, help='Manual override of batch_size, -1 for AutoBatch')
+    parser.add_argument('--batch_size', type=int, default=0, help='Manual override of batch_size, -1 for YOLO AutoBatch')
+    parser.add_argument('--autobatch_method', type=int, default=0,
+                        help='Method to use for gpu memory detection: 0 - dynamic with torch, 1 - passive from dictionary')
     parser.add_argument('--workers', type=int, default=None, help='Manual override of number of workers')
     parser.add_argument('--lr0', type=float, default=0.001, help='Initial learning rate')
     parser.add_argument('--lrf', type=float, default=0.01, help='Final learning rate (lr0 * lrf)')
@@ -271,7 +361,7 @@ if __name__ == "__main__":
     parser.add_argument('--optimizer', type=str, default='auto', help='optimizer: SGD, Adam, Adamax, AdamW, NAdam, RAdam, RMSProp, auto')
     parser.add_argument('--resume', type=bool, default=False, help='Whether to resume interrupted training')
     parser.add_argument('--weights', type=str, default=None, help='Path to partial weights (last.pt / best.pt)')
-
+    parser.add_argument('--hostname', type=str, default=None, help='$HOSTNAME from the pbs job to extract the node name from')
 
 
 
@@ -280,3 +370,7 @@ if __name__ == "__main__":
 
     # Run the main logic with the arguments
     main(args)
+
+qsub -l walltime=4:0:0 -q gpu@meta-pbs.metacentrum.cz -l select=1:ncpus=10:ngpus=1:mem=128gb:scratch_local=1gb:gpu_cap=cuda75 -v name="flowers_ours" dataset="flowers_ours"  project_name="Flowers" epochs=100 workers=10 lr0=0.01 lrf=0.01 cos_lr=True /storage/brno2/home/chlupp/pycharm/mtc-icvt/metacentrum/train_args.sh
+
+qsub -l walltime=4:0:0 -q gpu@meta-pbs.metacentrum.cz -l select=1:ncpus=10:ngpus=1:mem=128gb:scratch_local=1gb:gpu_cap=cuda75 -N "flowers_ours" -v name="flowers_ours",dataset="flowers_ours",project_name="Flowers",epochs=100,workers=10,lr0=0.01,lrf=0.01,cos_lr=True /storage/brno2/home/chlupp/pycharm/mtc-icvt/metacentrum/train_args.sh
