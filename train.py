@@ -347,7 +347,7 @@ def main(args):
     if args.workdir is None:
 
         # Get current directory (from where the script is being run) - this should be the homedir
-        current_directory = os.getcwd()
+        current_directory = "/storage/brno2/home/chlupp/"
 
     else:
 
