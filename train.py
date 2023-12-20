@@ -417,7 +417,7 @@ def main(args):
 
         # Define Save directory
         save_dir = os.path.join(current_directory, args.project_name, name)
-        os.path.makedirs(save_dir, exist_ok=True)
+        os.makedirs(save_dir, exist_ok=True)
 
         # Test save_dir to check where the files will be stored before the training continues
         # Open a file in write mode
@@ -461,7 +461,7 @@ def main(args):
 
                 # Define Save directory
                 save_dir = os.path.join(current_directory, args.project_name, name)
-                os.path.makedirs(save_dir, exist_ok=True)
+                os.makedirs(save_dir, exist_ok=True)
 
                 # Test save_dir to check where the files will be stored before the training continues
                 # Open a file in write mode
