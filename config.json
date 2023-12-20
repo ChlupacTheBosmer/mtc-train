@@ -1,0 +1,42 @@
+{
+    "description": {
+        "dataset": "Dataset name",
+        "name": "Task name",
+        "datasets_dir": "Path to the dataset folder",
+        "workdir": "Path to the working directory (homedir)",
+        "path_update": "Path to dataset images and/or labels will be updated by replacing \"storage\" with a preset path (to reflect binding)",
+        "project_name": "Project name",
+        "model": "Name or path to a pretrained model",
+        "epochs": "Number of epochs to train the model for",
+        "batch_size": "Manual override of batch_size, -1 for YOLO AutoBatch",
+        "autobatch_method": "Method to use for gpu memory detection: 0 - dynamic with torch, 1 - passive from dictionary",
+        "workers": "Manual override of number of workers",
+        "lr0": "Initial learning rate",
+        "lrf": "Final learning rate (lr0 * lrf)",
+        "cos_lr": "Use cos scheduler for learning rate",
+        "optimizer": "Optimizer: SGD, Adam, Adamax, AdamW, NAdam, RAdam, RMSProp, auto",
+        "resume": "Whether to resume interrupted training",
+        "weights": "Path to partial weights (last.pt / best.pt)",
+        "single_cls": "Whether to train as single classed model (0/1)"
+    },
+    "arguments": {
+        "dataset": "example_dataset",
+        "name": "my_training_task",
+        "datasets_dir": "/path/to/datasets",
+        "workdir": "/path/to/workdir",
+        "path_update": "/new/path",
+        "project_name": "YOLOv8 train",
+        "model": "yolov8n.pt",
+        "epochs": 300,
+        "batch_size": 0,
+        "autobatch_method": 1,
+        "workers": 0,
+        "lr0": 0.01,
+        "lrf": 0.01,
+        "cos_lr": true,
+        "optimizer": "auto",
+        "resume": 0,
+        "weights": "",
+        "single_cls": 1
+    }
+}
