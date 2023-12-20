@@ -6,6 +6,7 @@ from ultralytics import settings
 import torch
 import clearml
 from clearml import Task
+import json
 
 def get_gpu_memory_cuda():
     """
@@ -412,10 +413,11 @@ def main(args):
 
         # Define Save directory
         save_dir = os.path.join(current_directory, args.project_name, name)
+        os.path.makedirs(save_dir, exist_ok=True)
 
         # Test save_dir to check where the files will be stored before the training continues
         # Open a file in write mode
-        with open('task_test.txt', 'w') as file:
+        with open(os.path.join(save_dir, 'task_test.txt'), 'w') as file:
             # Write variable names and values to the file
             file.write(f'name: {name}\n')
             file.write(f'project_name: {args.project_name}\n')
@@ -455,10 +457,11 @@ def main(args):
 
                 # Define Save directory
                 save_dir = os.path.join(current_directory, args.project_name, name)
+                os.path.makedirs(save_dir, exist_ok=True)
 
                 # Test save_dir to check where the files will be stored before the training continues
                 # Open a file in write mode
-                with open('task_test.txt', 'w') as file:
+                with open(os.path.join(save_dir, 'task_test.txt'), 'w') as file:
                     # Write variable names and values to the file
                     file.write(f'name: {name}\n')
                     file.write(f'project_name: {args.project_name}\n')
@@ -479,7 +482,10 @@ def main(args):
         except:
             raise
 
-
+def load_config(config_path):
+    with open(config_path, 'r') as file:
+        config = json.load(file)
+    return config.get('arguments', {})
 
 if __name__ == "__main__":
 
@@ -490,7 +496,10 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='This script will train a YOLOv8 model.')
 
-    # Example arguments. Modify them according to your needs.
+    # Argument to config file containing the rest of the training arguments
+    parser.add_argument('--config', type=str, required=True, help='Path to the config.json file')
+
+    # Arguments defining training
     parser.add_argument('--dataset', type=str, default=None, help='Dataset folder name')
     parser.add_argument('--name', type=str, default=None, help='Task name')
     parser.add_argument('--datasets_dir', type=str, default=None, help='Path to the dataset folder')
@@ -514,6 +523,14 @@ if __name__ == "__main__":
 
     # parse arguments
     args = parser.parse_args()
+
+    # Load arguments from JSON config file
+    config_args = load_config(args.config)
+
+    # Combine with command-line arguments, giving precedence to CLI arguments
+    for key, value in vars(args).items():
+        if key != 'config' and key in config_args and value is None:
+            setattr(args, key, config_args[key])
 
     # Run the main logic with the arguments
     main(args)
