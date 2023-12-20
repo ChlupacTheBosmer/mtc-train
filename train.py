@@ -68,7 +68,7 @@ def get_gpu_memory(node_name, gpu_memory_dict):
     # Retrieves the GPU memory size for the given node name and converts it to GB
     memory_mb = gpu_memory_dict.get(node_name)
     if memory_mb is None:
-        return "Unknown node"
+        return 0
     return memory_mb / 1024
 
 def initialize_cuda_settings():
@@ -209,28 +209,32 @@ def assign_batch_size(method: int = 0, hostname = None):
     # Detect CUDA devices
     num_cuda_devices = torch.cuda.device_count()
 
-    if method == 0:
+    try:
+        if method == 0:
 
-        # Get GPU memory
-        gpu_memory_gb = get_gpu_memory_cuda()
+            # Get GPU memory
+            gpu_memory_gb = get_gpu_memory_cuda()
 
-    elif method == 1 and hostname is not None:
+        elif method == 1 and hostname is not None:
 
-        hostname = args.hostname
-        node_name = get_node_name(hostname)
-        gpu_memory_gb = get_gpu_memory(node_name, gpu_memory_by_node)
+            hostname = args.hostname
+            node_name = get_node_name(hostname)
+            gpu_memory_gb = get_gpu_memory(node_name, gpu_memory_by_node)
 
-    else:
-        print("Wrong detection method argument value")
-        return 0
+        else:
+            print("Wrong detection method argument value")
+            return 0
 
-    # Calculate batch size
-    batch_size_per_gpu = calculate_batch_size(gpu_memory_gb)
+        # Calculate batch size
+        batch_size_per_gpu = calculate_batch_size(gpu_memory_gb)
 
-    # Calculate batch size
-    batch_size = batch_size_per_gpu * max(1, num_cuda_devices)
+        # Calculate batch size
+        batch_size = batch_size_per_gpu * max(1, num_cuda_devices)
 
-    print(f"Batch size per GPU: {batch_size_per_gpu}, Using batch size: {batch_size}")
+        print(f"Batch size per GPU: {batch_size_per_gpu}, Using batch size: {batch_size}")
+    except Exception as e:
+        print(f'Unable to determine batch_size: {e}')
+        batch_size = 0
 
     return batch_size
 
