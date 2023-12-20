@@ -409,6 +409,22 @@ def main(args):
         # Put together the path to the dataset data file
         dataset_data = os.path.normpath(os.path.join(datasets_dir, args.dataset, f'{args.dataset}.yaml')) if args.path_update is None else os.path.normpath(os.path.join(datasets_dir, args.dataset, f'{args.dataset}_updated.yaml'))
         print(dataset_data)
+
+        # Define Save directory
+        save_dir = os.path.join(current_directory, args.project_name, name)
+
+        # Test save_dir to check where the files will be stored before the training continues
+        # Open a file in write mode
+        with open('task_test.txt', 'w') as file:
+            # Write variable names and values to the file
+            file.write(f'name: {name}\n')
+            file.write(f'project_name: {args.project_name}\n')
+            file.write(f'save_dir: {save_dir}\n')
+            file.write(f'dataset: {args.dataset}\n')
+
+        print("File 'test_variables.txt' has been created with the variable data.")
+
+
         # Train the model
         try:
             results = model.train(data=dataset_data,
@@ -424,7 +440,8 @@ def main(args):
                                   lrf=args.lrf,
                                   cos_lr=args.cos_lr,
                                   optimizer=args.optimizer,
-                                  single_cls=single_cls
+                                  single_cls=single_cls,
+                                  save_dir=save_dir
                                   )
             task.close()
         except:
@@ -435,6 +452,20 @@ def main(args):
 
                 # load model from partial weights
                 model = YOLO(args.weights)
+
+                # Define Save directory
+                save_dir = os.path.join(current_directory, args.project_name, name)
+
+                # Test save_dir to check where the files will be stored before the training continues
+                # Open a file in write mode
+                with open('task_test.txt', 'w') as file:
+                    # Write variable names and values to the file
+                    file.write(f'name: {name}\n')
+                    file.write(f'project_name: {args.project_name}\n')
+                    file.write(f'save_dir: {save_dir}\n')
+                    file.write(f'dataset: {args.dataset}\n')
+
+                print("File 'test_variables.txt' has been created with the variable data.")
 
                 results = model.train(resume=True,
                                       batch=batch_size,
