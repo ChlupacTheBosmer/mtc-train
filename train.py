@@ -417,18 +417,18 @@ def main(args):
 
         # Define Save directory
         save_dir = os.path.join(current_directory, args.project_name, name)
-        os.makedirs(save_dir, exist_ok=True)
-
-        # Test save_dir to check where the files will be stored before the training continues
-        # Open a file in write mode
-        with open(os.path.join(save_dir, 'task_test.txt'), 'w') as file:
-            # Write variable names and values to the file
-            file.write(f'name: {name}\n')
-            file.write(f'project_name: {args.project_name}\n')
-            file.write(f'save_dir: {save_dir}\n')
-            file.write(f'dataset: {args.dataset}\n')
-
-        print("File 'test_variables.txt' has been created with the variable data.")
+        # os.makedirs(save_dir, exist_ok=True)
+        #
+        # # Test save_dir to check where the files will be stored before the training continues
+        # # Open a file in write mode
+        # with open(os.path.join(save_dir, 'task_test.txt'), 'w') as file:
+        #     # Write variable names and values to the file
+        #     file.write(f'name: {name}\n')
+        #     file.write(f'project_name: {args.project_name}\n')
+        #     file.write(f'save_dir: {save_dir}\n')
+        #     file.write(f'dataset: {args.dataset}\n')
+        #
+        # print("File 'test_variables.txt' has been created with the variable data.")
 
 
         # Train the model
@@ -461,18 +461,18 @@ def main(args):
 
                 # Define Save directory
                 save_dir = os.path.join(current_directory, args.project_name, name)
-                os.makedirs(save_dir, exist_ok=True)
-
-                # Test save_dir to check where the files will be stored before the training continues
-                # Open a file in write mode
-                with open(os.path.join(save_dir, 'task_test.txt'), 'w') as file:
-                    # Write variable names and values to the file
-                    file.write(f'name: {name}\n')
-                    file.write(f'project_name: {args.project_name}\n')
-                    file.write(f'save_dir: {save_dir}\n')
-                    file.write(f'dataset: {args.dataset}\n')
-
-                print("File 'test_variables.txt' has been created with the variable data.")
+                # os.makedirs(save_dir, exist_ok=True)
+                #
+                # # Test save_dir to check where the files will be stored before the training continues
+                # # Open a file in write mode
+                # with open(os.path.join(save_dir, 'task_test.txt'), 'w') as file:
+                #     # Write variable names and values to the file
+                #     file.write(f'name: {name}\n')
+                #     file.write(f'project_name: {args.project_name}\n')
+                #     file.write(f'save_dir: {save_dir}\n')
+                #     file.write(f'dataset: {args.dataset}\n')
+                #
+                # print("File 'test_variables.txt' has been created with the variable data.")
 
                 results = model.train(resume=True,
                                       batch=batch_size,
@@ -531,10 +531,9 @@ if __name__ == "__main__":
     # Load arguments from JSON config file
     config_args = load_config(args.config)
 
-    # Combine with command-line arguments, giving precedence to CLI arguments
-    for key, value in vars(args).items():
-        if key != 'config' and key in config_args and value is None:
-            setattr(args, key, config_args[key])
+    # Combine with command-line arguments, giving precedence to config file arguments
+    for key, value in config_args.items():
+        setattr(args, key, value)
 
     # Run the main logic with the arguments
     main(args)
